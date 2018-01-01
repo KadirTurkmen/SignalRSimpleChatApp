@@ -1,0 +1,87 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+
+@section scripts{
+
+    <script type="text/javascript" src="~/Scripts/jquery-1.10.2.js"></script>
+    <script type="text/javascript" src="~/Scripts/jquery.signalR-2.1.2.js"></script>
+    <script src="~/signalr/hubs"></script>
+
+    <script type="text/javascript">
+        $(function () {
+            var chatHub = $.connection.ds; // bir tane connection oluşturuyoruz ve bu connection ı kullanarak server side tarafındaki hub classında türemiş ChatHub classımızın içindeki fonksiyonları tetikleyebiliyoruz. ds ChatHub sınıfına verilmiş HubName dir. Sınıfın kendi adıda kullanılabilir ama küçük harf kullanılmalıdır.
+
+            chatHub.client.sendMessageToPage = function (sendName, receiveName, message) { // server side tarafından client tarafta tetiklenmesi gereken fonksiyonu tanımlıyoruz.
+                var _sendUser = $('#sSendUser').val();
+                var _receiveUser = $('#sReceiverUser').val();
+
+                //Gönderen ve alan kullanıcıların birbirleriyle eşleşmeleri kontrol ediliyor.
+                var _users = [_sendUser, _receiveUser];
+                if ($.inArray(sendName, _users) != -1 && $.inArray(receiveName, _users) != -1) {
+                    $("#lAllMessage").append("<li><strong>" + sendName + " : </strong>" + message + "</li>");
+                }
+            };
+
+            function HubSendMessage(chatHub, sendName, receiveName, message) {
+                chatHub.server.sendMessage(sendName, receiveName, message); // Server side tarafındaki fonksiyonu tetikliyoruz.
+            }
+
+            $("#iTMessage").focus();
+
+            $.connection.hub.start().done(function () { // Hub sınıfından türetilmiş ChatHub sınıfına bağlanılan kısımdır.
+                $("#iBSend").on("click", function () {
+                    var sendName = $('#sSendUser').val();
+                    var receiveName = $('#sReceiverUser').val();
+                    var message = $('#iTMessage').val();
+                    HubSendMessage(chatHub, sendName, receiveName, message);
+                    $("#iTMessage").val("").focus();
+                });
+            });
+        });
+
+    </script>
+}
+<div class="jumbotron">
+</div>
+
+<div class="row">
+
+    <div class="col-sm-12">
+        @* Gönderen Kullanıcı *@
+        <div class="col-sm-2"><i>Gönderen Kullanıcı : </i></div>
+        <div class="col-sm-3">
+            <select id="sSendUser" style="width:200px;border: 1px solid; padding:2px; border-color:aquamarine;">
+                <option value="seciniz">Şeçiniz...</option>
+                <option value="kullanici1">Kullanıcı 1</option>
+                <option value="kullanici2">Kullanıcı 2</option>
+                <option value="kullanici3">Kullanıcı 3</option>
+            </select>
+        </div>
+        @* Alıcı Kullanıcı *@
+        <div class="col-sm-2"><i>Alıcı Kullanıcı : </i></div>
+        <div class="col-sm-3">
+            <select id="sReceiverUser" style="width:200px;border: 1px solid; padding:2px; border-color:aquamarine;">
+                <option value="seciniz">Şeçiniz...</option>
+                <option value="kullanici1">Kullanıcı 1</option>
+                <option value="kullanici2">Kullanıcı 2</option>
+                <option value="kullanici3">Kullanıcı 3</option>
+            </select>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        @* Gönderilen Ve Alınan Mesajlar *@
+        <ul id="lAllMessage" style="border:1px solid; border-color:dodgerblue; background-color:antiquewhite; height:300px;"></ul>
+    </div>
+</div>
+<div class="row">
+    <div class="col-sm-12">
+        @* Mesaj *@
+        <i>Mesaj : </i><input id="iTMessage" style="width: 525px; border: 1px solid; border-color:aqua;" />
+        @* Gönder Button *@
+        <input type="button" class="btn-success" style="border:1px solid;" id="iBSend" value="Gönder" />
+    </div>
+</div>
